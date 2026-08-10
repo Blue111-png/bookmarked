@@ -1,12 +1,12 @@
 import "dotenv/config";
 import { createApp } from "./app";
-import { connectDB } from "./config/db";
+import { prisma } from "./db";
 
 const PORT = process.env.PORT || 4100;
 
 async function main() {
-  await connectDB();
-  console.log("Connected to MongoDB");
+  await prisma.$connect();
+  console.log("Connected to Postgres");
 
   const app = createApp();
   app.listen(PORT, () => {

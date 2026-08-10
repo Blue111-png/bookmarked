@@ -31,7 +31,7 @@ export default function ResourceCard({ resource, auth, onUpdated }: ResourceCard
     setError(null);
     try {
       const { resource: updated } = await addReaction(
-        { resourceId: resource._id, emoji },
+        { resourceId: resource.id, emoji },
         auth.token
       );
       onUpdated(updated);

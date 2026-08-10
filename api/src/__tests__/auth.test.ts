@@ -1,19 +1,15 @@
 import request from "supertest";
 import { createApp } from "../app";
-import { setupTestDB, teardownTestDB, clearTestDB } from "./setup";
+import { clearTestDB, disconnectTestDB } from "./setup";
 
 const app = createApp();
-
-beforeAll(async () => {
-  await setupTestDB();
-});
 
 afterEach(async () => {
   await clearTestDB();
 });
 
 afterAll(async () => {
-  await teardownTestDB();
+  await disconnectTestDB();
 });
 
 describe("POST /api/auth/register", () => {

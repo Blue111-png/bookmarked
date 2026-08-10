@@ -1,23 +1,33 @@
 services:
-  mongo:
-    image: mongo:7
+  db:
+    image: postgres:16-alpine
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bookmarked}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bookmarked_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-bookmarked}
     ports:
-      - "27018:27017"
+      - "5433:5432"
     volumes:
-      - mongo_data:/data/db
+      - bookmarked_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bookmarked}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
       context: ./api
     restart: unless-stopped
     depends_on:
-      - mongo
+      db:
+        condition: service_healthy
     ports:
       - "4100:4100"
     environment:
       - PORT=4100
-      - MONGO_URI=mongodb://mongo:27017/bookmarked
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-bookmarked}:${POSTGRES_PASSWORD:-bookmarked_dev_password}@db:5432/${POSTGRES_DB:-bookmarked}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
 
   web:
@@ -32,4 +42,4 @@ services:
       - "3100:3000"
 
 volumes:
-  mongo_data:
+  bookmarked_pgdata:

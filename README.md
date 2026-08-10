@@ -12,16 +12,17 @@ issue-claiming workflow.
 ## Stack
 
 - **Frontend**: Next.js (App Router), React, TypeScript, plain CSS
-- **API**: Node.js + Express, Mongoose, TypeScript
-- **Database**: MongoDB
+- **API**: Node.js + Express, Prisma, TypeScript
+- **Database**: PostgreSQL
 - **Auth**: JWT (email + password, bcrypt-hashed). This is intentionally
   simple for a sprint exercise - there's no email verification or password
   reset flow.
 - **Tests**: Jest + Supertest + ts-jest (API), Jest + Testing Library (frontend)
 
-This is the only fully TypeScript project among the sprint repos - if you
-want to practice static typing in the JS ecosystem specifically (as opposed
-to Python type hints or Java), this is the one.
+This is the only fully TypeScript project among the sprint repos, and the
+only one on a relational database via an ORM (Prisma) rather than an ODM -
+if you want to practice SQL/relational modeling and migrations specifically,
+this is the one.
 
 ## Quickstart
 
@@ -34,7 +35,7 @@ docker-compose up --build
 
 This starts three services:
 
-- `mongo` - MongoDB on port `27018`
+- `db` - PostgreSQL on port `5433`
 - `api` - Express API on [http://localhost:4100](http://localhost:4100)
 - `web` - Next.js frontend on [http://localhost:3100](http://localhost:3100)
 
@@ -55,7 +56,8 @@ all of them is `password123`), or register your own account.
 cd api
 cp .env.example .env
 npm install
-npm run seed   # requires a local MongoDB running on the URI in .env
+npx prisma migrate deploy   # applies the schema to the Postgres in .env
+npm run seed
 npm run dev
 
 # Frontend (in a separate terminal)
@@ -78,13 +80,17 @@ npm run dev
 | DELETE | `/api/resources/:id/reactions/:rid` | yes            | Remove your own reaction         |
 
 The data model is intentionally shallow: a `User` has an email, display name,
-and password hash. A `Resource` has a submitter, title, URL, description,
-tags, and an embedded array of reactions (emoji + reacting user).
+and password hash. A `Resource` belongs to a submitting `User`, and has a
+title, URL, description, and a Postgres native array of tags. A `Reaction`
+is its own table with a foreign key to both `Resource` and `User`, with a
+unique constraint on `(resourceId, userId, emoji)` to prevent duplicate
+reactions - see [`prisma/schema.prisma`](./api/prisma/schema.prisma).
 
 ## Testing
 
 ```bash
-# API tests (spins up an in-memory MongoDB, no external DB needed)
+# API tests (spins up a real, throwaway Postgres via embedded-postgres and
+# applies the actual migration history to it - no external DB needed)
 cd api
 npm install
 npm test

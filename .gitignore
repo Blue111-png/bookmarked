@@ -15,6 +15,9 @@ web/out/
 dist/
 build/
 
+# Embedded Postgres test data (created by jest.global-setup.js)
+api/.tmp-test-pgdata/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

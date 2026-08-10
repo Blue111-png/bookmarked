@@ -1,6 +1,6 @@
 import request from "supertest";
 import { createApp } from "../app";
-import { setupTestDB, teardownTestDB, clearTestDB } from "./setup";
+import { clearTestDB, disconnectTestDB } from "./setup";
 
 const app = createApp();
 
@@ -13,16 +13,12 @@ async function registerAndLogin(email: string) {
   return { token: res.body.token, user: res.body.user };
 }
 
-beforeAll(async () => {
-  await setupTestDB();
-});
-
 afterEach(async () => {
   await clearTestDB();
 });
 
 afterAll(async () => {
-  await teardownTestDB();
+  await disconnectTestDB();
 });
 
 describe("POST /api/resources", () => {
@@ -91,14 +87,14 @@ describe("DELETE /api/resources/:id/reactions/:reactionId", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ title: "Reactable", url: "https://example.com" });
 
-    const resourceId = createRes.body.resource._id;
+    const resourceId = createRes.body.resource.id;
 
     const reactRes = await request(app)
       .post(`/api/resources/${resourceId}/reactions`)
       .set("Authorization", `Bearer ${token}`)
       .send({ emoji: "⭐" });
 
-    const reactionId = reactRes.body.resource.reactions[0]._id;
+    const reactionId = reactRes.body.resource.reactions[0].id;
 
     const deleteRes = await request(app)
       .delete(`/api/resources/${resourceId}/reactions/${reactionId}`)
@@ -117,14 +113,14 @@ describe("DELETE /api/resources/:id/reactions/:reactionId", () => {
       .set("Authorization", `Bearer ${ownerToken}`)
       .send({ title: "Contested", url: "https://example.com" });
 
-    const resourceId = createRes.body.resource._id;
+    const resourceId = createRes.body.resource.id;
 
     const reactRes = await request(app)
       .post(`/api/resources/${resourceId}/reactions`)
       .set("Authorization", `Bearer ${ownerToken}`)
       .send({ emoji: "⭐" });
 
-    const reactionId = reactRes.body.resource.reactions[0]._id;
+    const reactionId = reactRes.body.resource.reactions[0].id;
 
     const deleteRes = await request(app)
       .delete(`/api/resources/${resourceId}/reactions/${reactionId}`)

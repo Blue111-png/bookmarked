@@ -1,17 +1,17 @@
 export interface User {
-  _id: string;
+  id: string;
   email: string;
   displayName: string;
 }
 
 export interface Reaction {
-  _id: string;
+  id: string;
   emoji: string;
   user?: User;
 }
 
 export interface Resource {
-  _id: string;
+  id: string;
   title: string;
   url: string;
   description: string;

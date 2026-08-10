@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  displayName  String
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  resources Resource[]
+  reactions Reaction[]
+}
+
+model Resource {
+  id            String   @id @default(uuid())
+  title         String
+  url           String
+  description   String   @default("")
+  tags          String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  submittedBy   User     @relation(fields: [submittedById], references: [id])
+  submittedById String
+
+  reactions     Reaction[]
+
+  @@index([submittedById])
+  @@index([tags])
+}
+
+model Reaction {
+  id         String   @id @default(uuid())
+  emoji      String
+  createdAt  DateTime @default(now())
+
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId String
+
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+
+  // Mirrors the "already reacted with this emoji" check from the old
+  // Mongoose version, enforced at the database level this time.
+  @@unique([resourceId, userId, emoji])
+}

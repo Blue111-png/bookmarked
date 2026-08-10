@@ -1,8 +1,6 @@
 import "dotenv/config";
-import mongoose from "mongoose";
-import { connectDB } from "./config/db";
-import User from "./models/User";
-import Resource from "./models/Resource";
+import { prisma } from "./db";
+import { hashPassword } from "./utils/password";
 
 const SEED_USERS = [
   { email: "amina@bookmarked.dev", displayName: "Amina Yusuf", password: "password123" },
@@ -37,8 +35,8 @@ const SEED_RESOURCES = [
     submittedByEmail: "sam@bookmarked.dev",
     title: "Mongoose Population Docs",
     url: "https://mongoosejs.com/docs/populate.html",
-    description: "Kept getting confused by populate() until I read this twice.",
-    tags: ["mongodb", "backend"],
+    description: "Kept getting confused by populate() until I read this twice. (Yes, ironic given we're on Postgres now - the concept of loading related records still applies, just via Prisma's `include`.)",
+    tags: ["backend"],
   },
   {
     submittedByEmail: "amina@bookmarked.dev",
@@ -57,51 +55,56 @@ const SEED_RESOURCES = [
 ];
 
 async function seed() {
-  await connectDB();
-  console.log("Connected to MongoDB, seeding...");
+  console.log("Connected to Postgres, seeding...");
 
-  await Resource.deleteMany({});
-  await User.deleteMany({});
+  // Order matters: reactions/resources reference users via foreign keys.
+  await prisma.reaction.deleteMany({});
+  await prisma.resource.deleteMany({});
+  await prisma.user.deleteMany({});
 
-  const usersByEmail: Record<string, InstanceType<typeof User>> = {};
+  const usersByEmail: Record<string, { id: string }> = {};
   for (const u of SEED_USERS) {
-    const passwordHash = await User.hashPassword(u.password);
-    const user = await User.create({
-      email: u.email,
-      displayName: u.displayName,
-      passwordHash,
+    const passwordHash = await hashPassword(u.password);
+    const user = await prisma.user.create({
+      data: { email: u.email, displayName: u.displayName, passwordHash },
     });
     usersByEmail[u.email] = user;
     console.log(`Created user ${u.email} (password: ${u.password})`);
   }
 
+  const createdResources = [];
   for (const r of SEED_RESOURCES) {
     const submittedBy = usersByEmail[r.submittedByEmail];
-    await Resource.create({
-      submittedBy: submittedBy._id,
-      title: r.title,
-      url: r.url,
-      description: r.description,
-      tags: r.tags,
+    const resource = await prisma.resource.create({
+      data: {
+        submittedById: submittedBy.id,
+        title: r.title,
+        url: r.url,
+        description: r.description,
+        tags: r.tags,
+      },
     });
+    createdResources.push(resource);
   }
-  console.log(`Created ${SEED_RESOURCES.length} resources`);
+  console.log(`Created ${createdResources.length} resources`);
 
   // Sprinkle a couple of reactions on the first resource for demo purposes.
-  const firstResource = await Resource.findOne().sort({ createdAt: 1 });
+  const [firstResource] = createdResources;
   if (firstResource) {
     const reactors = Object.values(usersByEmail).slice(1, 3);
-    firstResource.reactions.push(
-      ...(reactors.map((r) => ({ emoji: "⭐", user: r._id })) as never[])
-    );
-    await firstResource.save();
+    for (const reactor of reactors) {
+      await prisma.reaction.create({
+        data: { emoji: "⭐", resourceId: firstResource.id, userId: reactor.id },
+      });
+    }
   }
 
   console.log("Seeding complete.");
-  await mongoose.connection.close();
+  await prisma.$disconnect();
 }
 
-seed().catch((err) => {
+seed().catch(async (err) => {
   console.error("Seed failed:", err);
+  await prisma.$disconnect();
   process.exit(1);
 });

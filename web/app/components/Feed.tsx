@@ -43,7 +43,7 @@ export default function Feed({ auth, refreshToken }: FeedProps) {
   }, [resources]);
 
   function handleUpdated(updated: Resource) {
-    setResources((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
+    setResources((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   }
 
   return (
@@ -66,7 +66,7 @@ export default function Feed({ auth, refreshToken }: FeedProps) {
       <div className="resource-list">
         {resources.map((resource) => (
           <ResourceCard
-            key={resource._id}
+            key={resource.id}
             resource={resource}
             auth={auth}
             onUpdated={handleUpdated}

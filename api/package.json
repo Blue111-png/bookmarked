@@ -1,24 +1,24 @@
 {
   "name": "bookmarked-api",
   "version": "1.0.0",
-  "description": "Bookmarked REST API - shared resource/link board (TypeScript)",
+  "description": "Bookmarked REST API - shared resource/link board (TypeScript + PostgreSQL)",
   "main": "dist/server.js",
   "type": "commonjs",
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "seed": "ts-node src/seed.ts",
     "test": "cross-env JWT_SECRET=test-secret NODE_ENV=test jest --runInBand"
   },
   "dependencies": {
+    "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.0"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -29,12 +29,19 @@
     "@types/node": "^20.14.15",
     "@types/supertest": "^6.0.2",
     "cross-env": "^7.0.3",
+    "embedded-postgres": "^18.4.0-beta.17",
     "jest": "^29.7.0",
-    "mongodb-memory-server": "^9.4.1",
+    "prisma": "^5.18.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.4"
+  },
+  "allowScripts": {
+    "@embedded-postgres/linux-x64@18.4.0-beta.17": true,
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "prisma@5.22.0": true
   }
 }
