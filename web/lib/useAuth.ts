@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AuthState } from "./types";
 
 const STORAGE_KEY = "bookmarked.auth";
 
 export function useAuth() {
-  const [auth, setAuth] = useState(null);
+  const [auth, setAuth] = useState<AuthState | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -21,8 +22,7 @@ export function useAuth() {
     }
   }, []);
 
-  const signIn = useCallback(({ token, user }) => {
-    const value = { token, user };
+  const signIn = useCallback((value: AuthState) => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
     setAuth(value);
   }, []);

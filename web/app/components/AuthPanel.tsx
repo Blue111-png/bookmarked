@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { login, register } from "@/lib/api";
+import { AuthState } from "@/lib/types";
 
-export default function AuthPanel({ auth, onSignIn, onSignOut }) {
-  const [mode, setMode] = useState("login");
+interface AuthPanelProps {
+  auth: AuthState | null;
+  onSignIn: (auth: AuthState) => void;
+  onSignOut: () => void;
+}
+
+export default function AuthPanel({ auth, onSignIn, onSignOut }: AuthPanelProps) {
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (auth) {
@@ -24,7 +31,7 @@ export default function AuthPanel({ auth, onSignIn, onSignOut }) {
     );
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -35,7 +42,7 @@ export default function AuthPanel({ auth, onSignIn, onSignOut }) {
           : await register({ email, password, displayName });
       onSignIn(result);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }

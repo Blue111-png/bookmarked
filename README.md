@@ -11,13 +11,17 @@ issue-claiming workflow.
 
 ## Stack
 
-- **Frontend**: Next.js (App Router), React, plain CSS
-- **API**: Node.js + Express, Mongoose
+- **Frontend**: Next.js (App Router), React, TypeScript, plain CSS
+- **API**: Node.js + Express, Mongoose, TypeScript
 - **Database**: MongoDB
 - **Auth**: JWT (email + password, bcrypt-hashed). This is intentionally
   simple for a sprint exercise - there's no email verification or password
   reset flow.
-- **Tests**: Jest + Supertest (API), Jest + Testing Library (frontend)
+- **Tests**: Jest + Supertest + ts-jest (API), Jest + Testing Library (frontend)
+
+This is the only fully TypeScript project among the sprint repos - if you
+want to practice static typing in the JS ecosystem specifically (as opposed
+to Python type hints or Java), this is the one.
 
 ## Quickstart
 
@@ -41,7 +45,7 @@ docker-compose exec api npm run seed
 ```
 
 Then open [http://localhost:3100](http://localhost:3100) and log in with one
-of the seeded accounts (see `api/src/seed.js` for emails - the password for
+of the seeded accounts (see `api/src/seed.ts` for emails - the password for
 all of them is `password123`), or register your own account.
 
 ### Running without Docker

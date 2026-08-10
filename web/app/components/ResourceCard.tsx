@@ -2,24 +2,31 @@
 
 import { useState } from "react";
 import { addReaction } from "@/lib/api";
+import { AuthState, Reaction, Resource } from "@/lib/types";
 
 // Starter emoji set - deliberately small. See the "add another reaction
 // emoji option" good-first-issue for extending this.
 const REACTION_OPTIONS = ["⭐", "🔖"];
 
-export function groupReactions(reactions) {
-  const groups = {};
+export function groupReactions(reactions: Reaction[]): Record<string, number> {
+  const groups: Record<string, number> = {};
   for (const reaction of reactions) {
     groups[reaction.emoji] = (groups[reaction.emoji] || 0) + 1;
   }
   return groups;
 }
 
-export default function ResourceCard({ resource, auth, onUpdated }) {
-  const [error, setError] = useState(null);
+interface ResourceCardProps {
+  resource: Resource;
+  auth: AuthState | null;
+  onUpdated: (resource: Resource) => void;
+}
+
+export default function ResourceCard({ resource, auth, onUpdated }: ResourceCardProps) {
+  const [error, setError] = useState<string | null>(null);
   const reactionGroups = groupReactions(resource.reactions || []);
 
-  async function handleReact(emoji) {
+  async function handleReact(emoji: string) {
     if (!auth) return;
     setError(null);
     try {
@@ -29,7 +36,7 @@ export default function ResourceCard({ resource, auth, onUpdated }) {
       );
       onUpdated(updated);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
   }
 

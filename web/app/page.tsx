@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/useAuth";
+import { Resource } from "@/lib/types";
 import AuthPanel from "./components/AuthPanel";
 import ResourceForm from "./components/ResourceForm";
 import Feed from "./components/Feed";
@@ -10,7 +11,7 @@ export default function HomePage() {
   const { auth, ready, signIn, signOut } = useAuth();
   const [refreshToken, setRefreshToken] = useState(0);
 
-  function handlePosted() {
+  function handlePosted(_resource: Resource) {
     setRefreshToken((n) => n + 1);
   }
 

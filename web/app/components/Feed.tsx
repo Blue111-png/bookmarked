@@ -2,12 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { listResources } from "@/lib/api";
+import { AuthState, Resource } from "@/lib/types";
 import ResourceCard from "./ResourceCard";
 
-export default function Feed({ auth, refreshToken }) {
-  const [resources, setResources] = useState([]);
+interface FeedProps {
+  auth: AuthState | null;
+  refreshToken: number;
+}
+
+export default function Feed({ auth, refreshToken }: FeedProps) {
+  const [resources, setResources] = useState<Resource[]>([]);
   const [tagFilter, setTagFilter] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +24,7 @@ export default function Feed({ auth, refreshToken }) {
         if (!cancelled) setResources(fetched);
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message);
+        if (!cancelled) setError(err instanceof Error ? err.message : "Something went wrong");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -29,14 +35,14 @@ export default function Feed({ auth, refreshToken }) {
   }, [tagFilter, refreshToken]);
 
   const tags = useMemo(() => {
-    const set = new Set();
+    const set = new Set<string>();
     for (const r of resources) {
       for (const tag of r.tags || []) set.add(tag);
     }
     return Array.from(set).sort();
   }, [resources]);
 
-  function handleUpdated(updated) {
+  function handleUpdated(updated: Resource) {
     setResources((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
   }
 

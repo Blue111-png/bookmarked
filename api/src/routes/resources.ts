@@ -1,20 +1,21 @@
-const express = require("express");
-const Resource = require("../models/Resource");
-const { requireAuth } = require("../middleware/auth");
+import express, { Request, Response } from "express";
+import mongoose from "mongoose";
+import Resource from "../models/Resource";
+import { requireAuth } from "../middleware/auth";
 
 const router = express.Router();
 
 // GET /api/resources?tag=<tag>&submittedBy=<userId>
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const { tag, submittedBy } = req.query;
-    const filter = {};
+    const filter: Record<string, unknown> = {};
 
-    if (tag) {
+    if (tag && typeof tag === "string") {
       filter.tags = tag.trim().toLowerCase();
     }
 
-    if (submittedBy) {
+    if (submittedBy && typeof submittedBy === "string") {
       filter.submittedBy = submittedBy;
     }
 
@@ -30,7 +31,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET /api/resources/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const resource = await Resource.findById(req.params.id)
       .populate("submittedBy", "displayName email")
@@ -47,7 +48,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/resources
-router.post("/", requireAuth, async (req, res) => {
+router.post("/", requireAuth, async (req: Request, res: Response) => {
   try {
     const { title, url, description, tags } = req.body;
 
@@ -60,7 +61,7 @@ router.post("/", requireAuth, async (req, res) => {
     }
 
     const resource = await Resource.create({
-      submittedBy: req.user.id,
+      submittedBy: req.user!.id,
       title: title.trim(),
       url: url.trim(),
       description: description ? description.trim() : "",
@@ -76,7 +77,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // POST /api/resources/:id/reactions
-router.post("/:id/reactions", requireAuth, async (req, res) => {
+router.post("/:id/reactions", requireAuth, async (req: Request, res: Response) => {
   try {
     const { emoji } = req.body;
 
@@ -90,13 +91,16 @@ router.post("/:id/reactions", requireAuth, async (req, res) => {
     }
 
     const alreadyReacted = resource.reactions.some(
-      (r) => r.user.toString() === req.user.id && r.emoji === emoji
+      (r) => r.user.toString() === req.user!.id && r.emoji === emoji
     );
     if (alreadyReacted) {
       return res.status(409).json({ error: "You already reacted with that emoji" });
     }
 
-    resource.reactions.push({ emoji, user: req.user.id });
+    resource.reactions.push({
+      emoji,
+      user: new mongoose.Types.ObjectId(req.user!.id),
+    } as never);
     await resource.save();
 
     const populated = await resource.populate([
@@ -111,7 +115,7 @@ router.post("/:id/reactions", requireAuth, async (req, res) => {
 });
 
 // DELETE /api/resources/:id/reactions/:reactionId
-router.delete("/:id/reactions/:reactionId", requireAuth, async (req, res) => {
+router.delete("/:id/reactions/:reactionId", requireAuth, async (req: Request, res: Response) => {
   try {
     const resource = await Resource.findById(req.params.id);
     if (!resource) {
@@ -123,7 +127,7 @@ router.delete("/:id/reactions/:reactionId", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "Reaction not found" });
     }
 
-    if (reaction.user.toString() !== req.user.id) {
+    if (reaction.user.toString() !== req.user!.id) {
       return res.status(403).json({ error: "You can only remove your own reactions" });
     }
 
@@ -141,4 +145,4 @@ router.delete("/:id/reactions/:reactionId", requireAuth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

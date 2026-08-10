@@ -1,8 +1,8 @@
-require("dotenv").config();
-const mongoose = require("mongoose");
-const { connectDB } = require("./config/db");
-const User = require("./models/User");
-const Resource = require("./models/Resource");
+import "dotenv/config";
+import mongoose from "mongoose";
+import { connectDB } from "./config/db";
+import User from "./models/User";
+import Resource from "./models/Resource";
 
 const SEED_USERS = [
   { email: "amina@bookmarked.dev", displayName: "Amina Yusuf", password: "password123" },
@@ -63,7 +63,7 @@ async function seed() {
   await Resource.deleteMany({});
   await User.deleteMany({});
 
-  const usersByEmail = {};
+  const usersByEmail: Record<string, InstanceType<typeof User>> = {};
   for (const u of SEED_USERS) {
     const passwordHash = await User.hashPassword(u.password);
     const user = await User.create({
@@ -92,7 +92,7 @@ async function seed() {
   if (firstResource) {
     const reactors = Object.values(usersByEmail).slice(1, 3);
     firstResource.reactions.push(
-      ...reactors.map((r) => ({ emoji: "⭐", user: r._id }))
+      ...(reactors.map((r) => ({ emoji: "⭐", user: r._id })) as never[])
     );
     await firstResource.save();
   }

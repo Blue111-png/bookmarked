@@ -1,10 +1,10 @@
-const request = require("supertest");
-const { createApp } = require("../app");
-const { setupTestDB, teardownTestDB, clearTestDB } = require("./setup");
+import request from "supertest";
+import { createApp } from "../app";
+import { setupTestDB, teardownTestDB, clearTestDB } from "./setup";
 
 const app = createApp();
 
-async function registerAndLogin(email) {
+async function registerAndLogin(email: string) {
   const res = await request(app).post("/api/auth/register").send({
     email,
     password: "password123",

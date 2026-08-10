@@ -1,17 +1,19 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import express, { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import User, { IUser } from "../models/User";
 
 const router = express.Router();
 
-function signToken(user) {
-  return jwt.sign({ sub: user._id.toString(), email: user.email }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+function signToken(user: IUser): string {
+  return jwt.sign(
+    { sub: user._id.toString(), email: user.email },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "7d" }
+  );
 }
 
 // POST /api/auth/register
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
     const { email, password, displayName } = req.body;
 
@@ -39,7 +41,7 @@ router.post("/register", async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -64,4 +66,4 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

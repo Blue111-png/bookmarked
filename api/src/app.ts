@@ -1,10 +1,10 @@
-const express = require("express");
-const cors = require("cors");
-const rateLimit = require("express-rate-limit");
-const authRoutes = require("./routes/auth");
-const resourcesRoutes = require("./routes/resources");
+import express, { Application, Request, Response, NextFunction } from "express";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
+import authRoutes from "./routes/auth";
+import resourcesRoutes from "./routes/resources";
 
-function createApp() {
+export function createApp(): Application {
   const app = express();
 
   app.use(cors());
@@ -19,24 +19,22 @@ function createApp() {
     legacyHeaders: false,
   });
 
-  app.get("/api/health", (req, res) => {
+  app.get("/api/health", (req: Request, res: Response) => {
     res.json({ status: "ok" });
   });
 
   app.use("/api/auth", writeLimiter, authRoutes);
   app.use("/api/resources", resourcesRoutes);
 
-  app.use((req, res) => {
+  app.use((req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });
   });
 
-  // eslint-disable-next-line no-unused-vars
-  app.use((err, req, res, next) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   });
 
   return app;
 }
-
-module.exports = { createApp };

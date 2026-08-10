@@ -1,6 +1,6 @@
-const request = require("supertest");
-const { createApp } = require("../app");
-const { setupTestDB, teardownTestDB, clearTestDB } = require("./setup");
+import request from "supertest";
+import { createApp } from "../app";
+import { setupTestDB, teardownTestDB, clearTestDB } from "./setup";
 
 const app = createApp();
 

@@ -1,6 +1,23 @@
-const mongoose = require("mongoose");
+import mongoose, { Document, Types } from "mongoose";
 
-const reactionSchema = new mongoose.Schema(
+export interface IReaction {
+  _id: Types.ObjectId;
+  emoji: string;
+  user: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IResource extends Document {
+  submittedBy: Types.ObjectId;
+  title: string;
+  url: string;
+  description: string;
+  tags: string[];
+  reactions: Types.DocumentArray<IReaction>;
+}
+
+const reactionSchema = new mongoose.Schema<IReaction>(
   {
     emoji: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -8,7 +25,7 @@ const reactionSchema = new mongoose.Schema(
   { timestamps: true, _id: true }
 );
 
-const resourceSchema = new mongoose.Schema(
+const resourceSchema = new mongoose.Schema<IResource>(
   {
     submittedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,7 +53,7 @@ const resourceSchema = new mongoose.Schema(
     tags: {
       type: [String],
       default: [],
-      set: (tags) => tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean),
+      set: (tags: string[]) => tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean),
     },
     reactions: {
       type: [reactionSchema],
@@ -50,4 +67,4 @@ resourceSchema.index({ createdAt: -1 });
 resourceSchema.index({ submittedBy: 1 });
 resourceSchema.index({ tags: 1 });
 
-module.exports = mongoose.model("Resource", resourceSchema);
+export default mongoose.model<IResource>("Resource", resourceSchema);

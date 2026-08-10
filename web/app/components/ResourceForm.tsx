@@ -1,20 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { createResource } from "@/lib/api";
+import { AuthState, Resource } from "@/lib/types";
 
-export default function ResourceForm({ auth, onPosted }) {
+interface ResourceFormProps {
+  auth: AuthState | null;
+  onPosted: (resource: Resource) => void;
+}
+
+export default function ResourceForm({ auth, onPosted }: ResourceFormProps) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [tagsInput, setTagsInput] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   if (!auth) {
     return <p className="hint">Log in to share a resource.</p>;
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
@@ -28,7 +34,7 @@ export default function ResourceForm({ auth, onPosted }) {
     try {
       const { resource } = await createResource(
         { title, url, description, tags },
-        auth.token
+        auth!.token
       );
       setTitle("");
       setUrl("");
@@ -36,7 +42,7 @@ export default function ResourceForm({ auth, onPosted }) {
       setTagsInput("");
       onPosted(resource);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
   }
 

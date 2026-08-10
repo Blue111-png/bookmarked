@@ -1,9 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import ResourceCard, { groupReactions } from "../ResourceCard";
+import { Resource } from "@/lib/types";
 
 describe("groupReactions", () => {
   it("counts reactions by emoji", () => {
-    const reactions = [{ emoji: "⭐" }, { emoji: "⭐" }, { emoji: "🔖" }];
+    const reactions = [
+      { _id: "r1", emoji: "⭐" },
+      { _id: "r2", emoji: "⭐" },
+      { _id: "r3", emoji: "🔖" },
+    ];
     expect(groupReactions(reactions)).toEqual({ "⭐": 2, "🔖": 1 });
   });
 
@@ -13,15 +18,15 @@ describe("groupReactions", () => {
 });
 
 describe("ResourceCard", () => {
-  const resource = {
+  const resource: Resource = {
     _id: "1",
     title: "MDN Async/Await Guide",
     url: "https://developer.mozilla.org",
     description: "Great explainer for async/await.",
     tags: ["javascript", "beginner"],
     createdAt: new Date().toISOString(),
-    submittedBy: { _id: "u1", displayName: "Amina Yusuf" },
-    reactions: [{ emoji: "⭐", user: { _id: "u2" } }],
+    submittedBy: { _id: "u1", displayName: "Amina Yusuf", email: "amina@example.com" },
+    reactions: [{ _id: "r1", emoji: "⭐", user: { _id: "u2", displayName: "Diego", email: "d@example.com" } }],
   };
 
   it("renders the resource title, author, and tags", () => {
