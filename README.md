@@ -42,8 +42,13 @@ This starts three services:
 Once it's up, seed some demo data:
 
 ```bash
-docker-compose exec api npm run seed
+docker-compose exec api npm run seed:compiled
 ```
+
+(`seed:compiled` runs the already-built `dist/seed.js` - the Docker image is
+production-only and doesn't include `ts-node`. If you're running the API
+outside Docker with `npm run dev`, use `npm run seed` instead, which runs
+the TypeScript source directly.)
 
 Then open [http://localhost:3100](http://localhost:3100) and log in with one
 of the seeded accounts (see `api/src/seed.ts` for emails - the password for
