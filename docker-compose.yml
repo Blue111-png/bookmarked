@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build:
+      context: ./api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "4100:4100"
+    environment:
+      - PORT=4100
+      - MONGO_URI=mongodb://mongo:27017/bookmarked
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4100
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3100:3000"
+
+volumes:
+  mongo_data:

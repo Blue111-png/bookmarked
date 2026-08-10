@@ -1,0 +1,76 @@
+"use client";
+
+import { useState } from "react";
+import { createResource } from "@/lib/api";
+
+export default function ResourceForm({ auth, onPosted }) {
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
+  const [description, setDescription] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [error, setError] = useState(null);
+
+  if (!auth) {
+    return <p className="hint">Log in to share a resource.</p>;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError(null);
+
+    // NOTE: no loading state here yet while the request is in flight -
+    // see the "add a loading state to the resource form" issue.
+    const tags = tagsInput
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    try {
+      const { resource } = await createResource(
+        { title, url, description, tags },
+        auth.token
+      );
+      setTitle("");
+      setUrl("");
+      setDescription("");
+      setTagsInput("");
+      onPosted(resource);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  return (
+    <form className="resource-form" onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        maxLength={200}
+        required
+      />
+      <input
+        type="text"
+        placeholder="https://..."
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        required
+      />
+      <textarea
+        placeholder="Why is this worth sharing? (optional)"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        maxLength={1000}
+      />
+      <input
+        type="text"
+        placeholder="Tags, comma separated (e.g. javascript, beginner)"
+        value={tagsInput}
+        onChange={(e) => setTagsInput(e.target.value)}
+      />
+      <button type="submit">Share resource</button>
+      {error && <p className="error">{error}</p>}
+    </form>
+  );
+}

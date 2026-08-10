@@ -1,0 +1,135 @@
+const request = require("supertest");
+const { createApp } = require("../app");
+const { setupTestDB, teardownTestDB, clearTestDB } = require("./setup");
+
+const app = createApp();
+
+async function registerAndLogin(email) {
+  const res = await request(app).post("/api/auth/register").send({
+    email,
+    password: "password123",
+    displayName: email.split("@")[0],
+  });
+  return { token: res.body.token, user: res.body.user };
+}
+
+beforeAll(async () => {
+  await setupTestDB();
+});
+
+afterEach(async () => {
+  await clearTestDB();
+});
+
+afterAll(async () => {
+  await teardownTestDB();
+});
+
+describe("POST /api/resources", () => {
+  it("creates a resource when authenticated", async () => {
+    const { token } = await registerAndLogin("owner@example.com");
+
+    const res = await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "MDN Docs", url: "https://developer.mozilla.org", tags: ["JS", " Beginner "] });
+
+    expect(res.status).toBe(201);
+    expect(res.body.resource.title).toBe("MDN Docs");
+    // tags should be lowercased and trimmed by the schema setter
+    expect(res.body.resource.tags).toEqual(["js", "beginner"]);
+  });
+
+  it("rejects a resource with no title", async () => {
+    const { token } = await registerAndLogin("owner2@example.com");
+
+    const res = await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ url: "https://example.com" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("rejects unauthenticated requests", async () => {
+    const res = await request(app)
+      .post("/api/resources")
+      .send({ title: "No auth", url: "https://example.com" });
+
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("GET /api/resources", () => {
+  it("filters by tag", async () => {
+    const { token } = await registerAndLogin("filter@example.com");
+
+    await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "CSS Tricks", url: "https://css-tricks.com", tags: ["css"] });
+
+    await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Go Docs", url: "https://go.dev", tags: ["go"] });
+
+    const res = await request(app).get("/api/resources").query({ tag: "css" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.resources).toHaveLength(1);
+    expect(res.body.resources[0].title).toBe("CSS Tricks");
+  });
+});
+
+describe("DELETE /api/resources/:id/reactions/:reactionId", () => {
+  it("allows a user to remove their own reaction", async () => {
+    const { token } = await registerAndLogin("reactor@example.com");
+
+    const createRes = await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Reactable", url: "https://example.com" });
+
+    const resourceId = createRes.body.resource._id;
+
+    const reactRes = await request(app)
+      .post(`/api/resources/${resourceId}/reactions`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ emoji: "⭐" });
+
+    const reactionId = reactRes.body.resource.reactions[0]._id;
+
+    const deleteRes = await request(app)
+      .delete(`/api/resources/${resourceId}/reactions/${reactionId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.resource.reactions).toHaveLength(0);
+  });
+
+  it("rejects removing someone else's reaction", async () => {
+    const { token: ownerToken } = await registerAndLogin("owner3@example.com");
+    const { token: otherToken } = await registerAndLogin("other@example.com");
+
+    const createRes = await request(app)
+      .post("/api/resources")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ title: "Contested", url: "https://example.com" });
+
+    const resourceId = createRes.body.resource._id;
+
+    const reactRes = await request(app)
+      .post(`/api/resources/${resourceId}/reactions`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ emoji: "⭐" });
+
+    const reactionId = reactRes.body.resource.reactions[0]._id;
+
+    const deleteRes = await request(app)
+      .delete(`/api/resources/${resourceId}/reactions/${reactionId}`)
+      .set("Authorization", `Bearer ${otherToken}`);
+
+    expect(deleteRes.status).toBe(403);
+  });
+});
