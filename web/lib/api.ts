@@ -68,3 +68,11 @@ export function removeReaction(input: { resourceId: string; reactionId: string }
     { method: "DELETE", token }
   );
 }
+
+export function reportResource(resourceId: string, token: string){
+  return request<{resource: Resource}>(`/api/resources/${resourceId}/report`, {
+    method: "POST",
+    token
+  })
+
+}
