@@ -24,6 +24,7 @@ interface ResourceCardProps {
 
 export default function ResourceCard({ resource, auth, onUpdated }: ResourceCardProps) {
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const reactionGroups = groupReactions(resource.reactions || []);
   const [reported, setReported] = useState(false);
 
@@ -40,13 +41,23 @@ setError(err instanceof Error ? err.message: "Something went wrong");
 
 }
 
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(resource.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    } catch {
+      setError("Failed to copy link");
+    }
+  }
+
   async function handleReact(emoji: string) {
     if (!auth) return;
     setError(null);
     try {
       const { resource: updated } = await addReaction(
         { resourceId: resource.id, emoji },
-        auth.token
+        auth.token,
       );
       onUpdated(updated);
     } catch (err) {
@@ -62,7 +73,16 @@ setError(err instanceof Error ? err.message: "Something went wrong");
             {resource.title}
           </a>
         </span>
-        <span className="author">{resource.submittedBy?.displayName || "Unknown"}</span>
+        <span className="author">
+          {resource.submittedBy?.displayName || "Unknown"}
+        </span>
+        <button
+          type="button"
+          className="copy-link-button"
+          onClick={handleCopyLink}
+        >
+          {copied ? "Copied!" : "Copy link"}
+        </button>
       </header>
       {resource.tags?.length > 0 && (
         <div className="tags">

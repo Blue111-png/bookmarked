@@ -112,6 +112,19 @@ section {
   border: 1px solid #ccc;
 }
 
+.mine-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mine-toggle input {
+  cursor: pointer;
+}
+
 .resource-list {
   display: flex;
   flex-direction: column;
@@ -192,6 +205,15 @@ section {
   cursor: pointer;
 }
 
+.copy-link-button {
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
 .hint {
   color: #666;
   font-style: italic;
@@ -200,4 +222,15 @@ section {
 .error {
   color: #c62828;
   font-size: 0.9rem;
+}
+
+.description-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.char-count {
+  font-size: 0.8rem;
+  color: #888;
+  align-self: flex-end;
 }
