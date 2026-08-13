@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import ResourceCard, { groupReactions } from "../ResourceCard";
-import { Resource } from "@/lib/types";
+import { Resource, AuthState } from "@/lib/types";
 
 describe("groupReactions", () => {
   it("counts reactions by emoji", () => {
@@ -40,6 +40,11 @@ describe("ResourceCard", () => {
     reactions: [{ id: "r1", emoji: "⭐", user: { id: "u2", displayName: "Diego", email: "d@example.com" } }],
   };
 
+  const auth: AuthState = {
+  token: "fake-token",
+  user: { id: "u2", displayName: "Diego", email: "d@example.com" },
+};
+
   it("renders the resource title, author, and tags", () => {
     render(<ResourceCard resource={resource} auth={null} onUpdated={() => {}} />);
 
@@ -59,4 +64,10 @@ describe("ResourceCard", () => {
       screen.queryByRole("button", { name: "🔖" }),
     ).not.toBeInTheDocument();
   });
+
+   it("shows the report button when logged in", () => {
+  render(<ResourceCard resource={resource} auth={auth} onUpdated={() => {}} />);
+
+  expect(screen.getByText("Report broken link")).toBeInTheDocument();
+});
 });

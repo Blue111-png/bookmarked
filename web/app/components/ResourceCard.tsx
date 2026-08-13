@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addReaction } from "@/lib/api";
+import { addReaction, reportResource } from "@/lib/api";
 import { AuthState, Reaction, Resource } from "@/lib/types";
 
 // Starter emoji set - deliberately small. See the "add another reaction
@@ -26,6 +26,20 @@ export default function ResourceCard({ resource, auth, onUpdated }: ResourceCard
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const reactionGroups = groupReactions(resource.reactions || []);
+  const [reported, setReported] = useState(false);
+
+async function handleReport() {
+if(!auth) return;
+setError(null);
+try{
+const {resource: updated} =await reportResource(resource.id,auth.token);
+onUpdated(updated);
+setReported(true);
+}catch(err){
+setError(err instanceof Error ? err.message: "Something went wrong");
+}
+
+}
 
   async function handleCopyLink() {
     try {
@@ -100,6 +114,11 @@ export default function ResourceCard({ resource, auth, onUpdated }: ResourceCard
               </button>
             ))}
         </div>
+        {auth && (
+  <button type="button" onClick={handleReport} disabled={reported}>
+    {reported ? "Reported" : "Report broken link"}
+  </button>
+)}
       </footer>
       {error && <p className="error">{error}</p>}
     </article>
