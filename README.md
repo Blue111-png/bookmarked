@@ -109,6 +109,17 @@ npm test
 CI runs both suites on every push and pull request - see
 [.github/workflows/ci.yml](./.github/workflows/ci.yml).
 
+## Screenshots
+
+**Login** : 
+![Login](docs/screenshots/Login.png)
+
+**Share a Resource :**
+![Share a Resource](docs/screenshots/Share_a_resource.png)
+
+**Feed :**
+![Feed](docs/screenshots/Feed.png)
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to claim an issue, the PR
