@@ -87,6 +87,12 @@ export default function Feed({ auth, socket }: FeedProps) {
     );
   }
 
+  function handleDeleted(resourceId: string) {
+		setResources((prev) =>
+			prev.filter((resource) => resource.id !== resourceId),
+		);
+  }
+
   return (
     <div className="feed">
       <div className="filter-bar">
@@ -130,6 +136,7 @@ export default function Feed({ auth, socket }: FeedProps) {
             resource={resource}
             auth={auth}
             onUpdated={handleReactionUpdated}
+            onDeleted={handleDeleted}
           />
         ))}
       </div>

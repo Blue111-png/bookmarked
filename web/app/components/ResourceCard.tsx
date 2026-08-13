@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addReaction, reportResource } from "@/lib/api";
+import { addReaction, deleteResource, reportResource } from "@/lib/api";
 import { AuthState, Reaction, Resource } from "@/lib/types";
 
 // Starter emoji set - deliberately small. See the "add another reaction
@@ -20,12 +20,14 @@ interface ResourceCardProps {
   resource: Resource;
   auth: AuthState | null;
   onUpdated: (resource: Resource) => void;
+  onDeleted: (resourceId: string) => void;
 }
 
-export default function ResourceCard({ resource, auth, onUpdated }: ResourceCardProps) {
+export default function ResourceCard({ resource, auth, onUpdated, onDeleted }: ResourceCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const reactionGroups = groupReactions(resource.reactions || []);
+  const canDelete = !!auth && (auth.user.role === "moderator" || auth.user.id === resource.submittedBy?.id);
   const [reported, setReported] = useState(false);
 
 async function handleReport() {
@@ -65,6 +67,24 @@ setError(err instanceof Error ? err.message: "Something went wrong");
     }
   }
 
+  async function handleDelete() {
+    if (!auth || !canDelete) return;
+
+    const confirmed = window.confirm("Are you sure you want to delete this resource?");
+
+    if (!confirmed) return;
+
+    setError(null);
+
+    try {
+      await deleteResource(resource.id, auth.token);
+      onDeleted(resource.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    }
+
+  }
+
   return (
     <article className="resource-card">
       <header>
@@ -96,6 +116,17 @@ setError(err instanceof Error ? err.message: "Something went wrong");
       {resource.description && <p className="resource-description">{resource.description}</p>}
       <footer>
         <time>{new Date(resource.createdAt).toLocaleString()}</time>
+        <div className="actions">
+          {canDelete && (
+          <button
+            type="button"
+            className="delete-button"
+            onClick={handleDelete}
+          >
+            Delete
+          </button>
+        )}
+
         <div className="reactions">
           {Object.entries(reactionGroups).map(([emoji, count]) => (
             <span key={emoji} className="reaction-count">
@@ -113,6 +144,7 @@ setError(err instanceof Error ? err.message: "Something went wrong");
                 {emoji}
               </button>
             ))}
+        </div>
         </div>
         {auth && (
   <button type="button" onClick={handleReport} disabled={reported}>
