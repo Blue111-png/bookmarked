@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import ResourceCard, { groupReactions } from "../ResourceCard";
 import { AuthState, Resource } from "@/lib/types";
 
@@ -120,6 +120,23 @@ describe("ResourceCard", () => {
 		).toBeInTheDocument();
   });
 
+  it("opens a confirmation modal before deleting", () => {
+    render(
+      <ResourceCard
+        resource={resource}
+        auth={memberOwnerAuth}
+        onUpdated={() => {}}
+        onDeleted={() => {}}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    expect(
+      screen.getByRole("dialog", { name: "Delete resource" }),
+    ).toBeInTheDocument();
+  });
+
   it("does not show the delete button to another member", () => {
 		render(
 			<ResourceCard
@@ -168,6 +185,8 @@ describe("ResourceCard", () => {
    it("shows the report button when logged in", () => {
   render(<ResourceCard resource={resource} auth={auth} onUpdated={() => {}} onDeleted={() => {}} />);
 
-  expect(screen.getByText("Report broken link")).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Report broken link" }),
+  ).toBeInTheDocument();
 });
 });
