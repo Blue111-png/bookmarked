@@ -33,6 +33,29 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/resources/random
+router.get("/random", async (req:Request, res:Response)=>{
+
+  try{
+
+const resourceCount= await prisma.resource.count();
+if(resourceCount === 0){
+  return res.status(404).json({error:"Resource not available"});
+};
+
+const randomIndex= Math.floor(Math.random() * resourceCount);
+
+const randomResource= await prisma.resource.findMany({
+   take: 1, skip: randomIndex, include: resourceInclude });
+
+return res.json({resource: randomResource[0]});
+
+  }catch(err){
+return res.status(500).json({ error: "Failed to fetch random resource" });
+  }
+
+})
+
 // GET /api/resources/:id
 router.get("/:id", async (req: Request, res: Response) => {
   try {
