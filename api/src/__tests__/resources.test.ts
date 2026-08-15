@@ -295,7 +295,6 @@ describe("GET /api/resources/random", ()=>{
   it("it gives a user a random resource", async ()=>{
     const { token } = await registerAndLogin("reporter@example.com");
 
-    const createRes = await request(app)
       .post("/api/resources")
       .set("Authorization", `Bearer ${token}`)
       .send({ title: "Reportable", url: "https://example.com" });
