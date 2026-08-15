@@ -18,7 +18,7 @@ export default function AuthPanel({
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword]= useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -113,7 +113,7 @@ export default function AuthPanel({
         required
         minLength={8}
         />
-        
+
       )}
       <button type="submit" disabled={loading}>
         {loading
