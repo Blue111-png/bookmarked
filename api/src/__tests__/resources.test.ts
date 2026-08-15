@@ -300,19 +300,19 @@ describe("GET /api/resources/random", ()=>{
       .set("Authorization", `Bearer ${token}`)
       .send({ title: "Reportable", url: "https://example.com" });
 
-const res = await request(app).get("/api/resources/random");
+    const res = await request(app).get("/api/resources/random");
 
-expect(res.status).toBe(200);
-expect(res.body.resource).toBeDefined();
-expect(res.body.resource.id).toBeDefined();
-expect(res.body.resource.title).toBeDefined();
-expect(res.body.resource.url).toBeDefined();
+      expect(res.status).toBe(200);
+      expect(res.body.resource).toBeDefined();
+      expect(res.body.resource.id).toBeDefined();
+      expect(res.body.resource.title).toBeDefined();
+      expect(res.body.resource.url).toBeDefined();
   })
 
   it("empty catalog returns 404", async ()=>{
-const res = await request(app).get("/api/resources/random");
+    const res = await request(app).get("/api/resources/random");
 
-expect(res.status).toBe(404);
+      expect(res.status).toBe(404);
   })
 })
 
