@@ -80,21 +80,51 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/resources/leaderboard
+// Registered before "/:id" so it is not matched as a resource id.
+router.get("/leaderboard", async (_req: Request, res: Response) => {
+  try {
+    const grouped = await prisma.resource.groupBy({
+      by: ["submittedById"],
+      _count: { submittedById: true },
+      orderBy: { _count: { submittedById: "desc" } },
+    });
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: grouped.map((g) => g.submittedById) } },
+      select: { id: true, displayName: true, email: true },
+    });
+    const userById = new Map(users.map((u) => [u.id, u]));
+
+    const leaderboard = grouped.map((g) => ({
+      user: userById.get(g.submittedById),
+      count: g._count.submittedById,
+    }));
+
+    return res.json({ leaderboard });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
+
 // GET /api/resources/random
-router.get("/random", async (req:Request, res:Response)=>{
-  try{
-    const allResource= await prisma.resource.findMany({include: resourceInclude});
+// Registered before "/:id" so it is not matched as a resource id.
+router.get("/random", async (req: Request, res: Response) => {
+  try {
+    const allResource = await prisma.resource.findMany({
+      include: resourceInclude,
+    });
 
     if (allResource.length === 0) {
-      return res.status(404).json({error:"Resource not available"});
-    };
+      return res.status(404).json({ error: "Resource not available" });
+    }
 
-    const randomIndex= Math.floor(Math.random() * allResource.length);
+    const randomIndex = Math.floor(Math.random() * allResource.length);
 
-    const randomResource= allResource[randomIndex]
+    const randomResource = allResource[randomIndex];
 
-    return res.json({resource: randomResource});
-  } catch(err) {
+    return res.json({ resource: randomResource });
+  } catch (err) {
     return res.status(500).json({ error: "Failed to fetch random resource" });
   }
 });
