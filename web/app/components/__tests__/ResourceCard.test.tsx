@@ -123,7 +123,7 @@ describe("ResourceCard", () => {
     );
     expect(screen.getByRole("link", { name: "View Details" })).toHaveAttribute(
       "href",
-      `/${resource.id}`,
+      `/resources/${resource.id}`,
     );
   });
 
